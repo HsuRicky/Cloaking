@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Report</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+        <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css"> -->
+
+        <style>
+            .date-choose {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                margin: 20px 0;
+                box-shadow: 0px 6px 18px #e8edf9, 0px 6px 18px #e8edf9, 0px 6px 18px #e8edf9, 0px 6px 18px #e8edf9;
+                border-radius: 0.375rem;
+                padding: 30px;
+                width: fit-content;
+            }
+
+            .date-choose-inner {
+                margin: 5px 0;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .date-choose-inner>span {
+                margin-right: 10px;
+                width: 50px;
+            }
+
+            .table-divs {
+                margin: 30px 150px 50px 150px;
+                padding: 30px;
+                box-shadow: 0px 6px 18px #e8edf9, 0px 6px 18px #e8edf9, 0px 6px 18px #e8edf9, 0px 6px 18px #e8edf9;
+                border-radius: 0.375rem;
+                max-width: 2000px;
+            }
+
+            @media screen and (max-width:1000px) {
+                .table-divs {
+                    margin: 15px 30px 50px 30px;
+                    padding: 30px;
+                }
+            }
+
+            .table-divs>h2 {
+                margin: 10px 0 10px 0;
+            }
+
+            table {
+                text-align: center;
+                white-space: nowrap;
+            }
+
+            .date-area {
+                width: 100%;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+            }
+
+            #table-1 {
+                min-height: 220px;
+            }
+
+            #table-2 {
+                min-height: 420px;
+            }
+
+            #table-3 {
+                min-height: 420px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="date-area">
+            <div class="date-choose">
+                <div class="date-choose-inner">
+                    <span>From</span>
+                    <input type="date" id="from-date">
+                </div>
+                <div class="date-choose-inner">
+                    <span>To</span>
+                    <input type="date" id="to-date">
+                </div>
+
+                <div>
+                    <button class="btn btn-outline-primary" id="go-btn">
+                        Go
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-divs table-responsive" id="table-1">
+            <h2>彙總報表</h2>
+            <h5>資料處理中...</h5>
+        </div>
+
+        <div class="table-divs table-responsive" id="table-2">
+            <h2>區間比較報表</h2>
+            <h5>資料處理中...</h5>
+        </div>
+
+        <div class="table-divs table-responsive" id="table-3">
+            <h2>明細報表</h2>
+            <h5>資料處理中...</h5>
+        </div>
+
+        <script>
+            function cdate(timestamp) {
+                if (timestamp != 0) {
+                    var dateTime = new Date(timestamp);
+                    var yy = dateTime.getFullYear();
+                    var mm = ('0' + (dateTime.getMonth() + 1)).slice(-2);
+                    var dd = ('0' + dateTime.getDate()).slice(-2);
+                    return yy + "/" + mm + "/" + dd;
+                } else {
+                    return ""
+                }
+            };
+
+            let getDatas = function () {
+                document.getElementById("table-1").innerHTML = '<h2>彙總報表</h2><h5>資料處理中...</h5>';
+
+                document.getElementById("table-2").innerHTML = '<h2>區間比較報表</h2><h5>資料處理中...</h5>';
+
+                document.getElementById("table-3").innerHTML = '<h2>明細報表</h2><h5>資料處理中...</h5>';
+
+                from = document.getElementById("from-date").value;
+                to = document.getElementById("to-date").value;
+                console.log(from, to)
+
+                start_ts = (Date.parse(from) + new Date().getTimezoneOffset() * 60000) / 1000;
+                end_ts = (Date.parse(to) + new Date().getTimezoneOffset() * 60000 + 24 * 60 * 60 * 1000) / 1000;
+
+                console.log(start_ts, end_ts);
+                console.log(cdate(start_ts * 1000), cdate(end_ts * 1000));
+                gap_ts = end_ts - start_ts
+                gap_days = parseInt(gap_ts / 24 / 60 / 60);
+
+                let table1_col = ["", "不重複", "全部", "不重複率"]
+                let table1_row = ["Google點擊數量", "B面訪問人數", "點擊率"]
+
+                let table2_col = [
+                    "",
+                    cdate(start_ts * 1000) + "-" + cdate((end_ts - 1) * 1000),
+                    cdate((start_ts - gap_ts) * 1000) + "-" + cdate((end_ts - gap_ts - 1) * 1000),
+                    "變化率"
+                ]
+                let table23_row = ["Google點擊(不重複)", "Google點擊(全部)", "B面訪問人數(不重複)", "B面訪問人數(全部)", "Google點擊不重複率", "B面訪問不重複率", "點擊率(不重複使用者)", "點擊率(全部使用者)", "短連結點擊(不重複)", "短連結點擊(全部)", "短連結點擊率"]
+
+                let table3_col = [""]
+                for (var gd = 0; gd < gap_days; gd++) {
+                    table3_col.push(cdate((end_ts - (gd + 1) * 24 * 60 * 60) * 1000));
+                }
+                console.log(table3_col)
+
+                // debug ./api.json
+                const request = new Request(
+                    '?start_ts=' + start_ts + '&end_ts=' + end_ts,
+                    {
+                        cache: 'no-cache',
+                        credentials: 'same-origin',
+                        headers: {
+                            'accept': 'application/json'
+                        },
+                        method: 'GET',
+                        mode: 'cors',
+                        redirect: 'follow',
+                    }
+                );
+
+                fetch(request)
+                    .then(response => {
+                        console.log(response)
+                        if (response.redirected === true) {
+                            location.href = response.url;
+
+                            return;
+                        } else {
+                            if (!response.ok) {
+                                info = {
+                                    "status": response.status,
+                                    "body": response.json()
+                                }
+
+                                return Promise.reject(info);
+                            }
+
+                            return response.json();
+                        }
+                    }).then(response => {
+                        table1 = response[0];
+                        table2 = response[1];
+                        table3 = response[2];
+
+                        // table 1
+                        thead = ""
+                        table1_col.forEach((ele) => {
+                            thead += '<th scope="col">' + ele + '</th>';
+                        })
+
+                        tbody = ""
+                        for (var row = 0; row < table1.length; row++) {
+                            tr = '<th scope="row">' + table1_row[row] + '</th>';
+                            for (var col = 0; col < table1[row].length; col++) {
+                                if (table1[row][col] != null) {
+                                    tr += '<td>' + table1[row][col] + '</td>';
+                                } else {
+                                    tr += '<td></td>';
+                                }
+                            }
+
+                            tbody += '<tr>' + tr + '<tr>';
+                        }
+
+                        document.getElementById("table-1").innerHTML = [
+                            '<h2>彙總報表</h2>',
+                            '<table class="table table-bordered">',
+                            '    <thead>',
+                            '        <tr>',
+                            thead,
+                            '        </tr>',
+                            '    </thead>',
+                            '    <tbody>',
+                            tbody,
+                            '    </tbody>',
+                            '</table>'
+                        ].join("");
+
+                        // table 2
+                        thead = ""
+                        table2_col.forEach((ele) => {
+                            thead += '<th scope="col">' + ele + '</th>';
+                        })
+
+                        tbody = ""
+                        for (var row = 0; row < table2.length; row++) {
+                            tr = '<th scope="row">' + table23_row[row] + '</th>';
+                            for (var col = 0; col < table2[row].length; col++) {
+                                if (table2[row][col] != null) {
+                                    tr += '<td>' + table2[row][col] + '</td>';
+                                } else {
+                                    tr += '<td></td>';
+                                }
+                            }
+
+                            tbody += '<tr>' + tr + '<tr>';
+                        }
+
+                        document.getElementById("table-2").innerHTML = [
+                            '<h2>區間比較報表</h2>',
+                            '<table class="table table-bordered">',
+                            '    <thead>',
+                            '        <tr>',
+                            thead,
+                            '        </tr>',
+                            '    </thead>',
+                            '    <tbody>',
+                            tbody,
+                            '    </tbody>',
+                            '</table>'
+                        ].join("");
+
+                        // table 3
+                        thead = ""
+                        table3_col.forEach((ele) => {
+                            thead += '<th scope="col">' + ele + '</th>';
+                        })
+
+                        tbody = ""
+                        for (var row = 0; row < table3.length; row++) {
+                            tr = '<th scope="row">' + table23_row[row] + '</th>';
+                            for (var col = 0; col < table3[row].length; col++) {
+                                if (table3[row][col] != null) {
+                                    tr += '<td>' + table3[row][col] + '</td>';
+                                } else {
+                                    tr += '<td></td>';
+                                }
+                            }
+
+                            tbody += '<tr>' + tr + '<tr>';
+                        }
+
+                        document.getElementById("table-3").innerHTML = [
+                            '<h2>明細報表</h2>',
+                            '<table class="table table-bordered">',
+                            '    <thead>',
+                            '        <tr>',
+                            thead,
+                            '        </tr>',
+                            '    </thead>',
+                            '    <tbody>',
+                            tbody,
+                            '    </tbody>',
+                            '</table>'
+                        ].join("");
+                    }).catch(function (error) {
+                        console.log(error);
+
+                        error.body.then((err) => {
+                            console.log("error", error.status, err)
+                            alert("Fail " + err.status);
+                        })
+                    }).catch(function (error) {
+                        console.log(error);
+                        alert("Fail");
+                    });
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                var date = new Date();
+
+                var day = date.getDate();
+                var month = date.getMonth() + 1;
+                var year = date.getFullYear();
+
+                if (month < 10) month = "0" + month;
+                if (day < 10) day = "0" + day;
+
+                var today = year + "-" + month + "-" + day;
+
+                document.getElementById("from-date").setAttribute("value", today);
+
+                document.getElementById("to-date").setAttribute("value", today);
+
+                document.getElementById("go-btn").addEventListener("click", getDatas);
+
+                getDatas();
+            })
+        </script>
+    </body>
+
+</html>
